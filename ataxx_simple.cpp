@@ -130,6 +130,13 @@ bool HasNoMove(int color)
 // Alpha-Beta搜索函数
 int AlphaBetaSearch(int depth, int alpha, int beta, bool maximizingPlayer, int color, int originalBotColor)
 {
+    // 每次进入函数都检查时间
+    double usedSec = duration_cast<milliseconds>(std::chrono::steady_clock::now() - globalStart).count() / 1000.0;
+    if(usedSec > globalTimeLimit * 0.95) {
+        // 时间不够了, 返回一个估值
+        return EvaluateBoard(originalBotColor);
+    }
+
     // 若无路可走或达到深度，则返回估值
     if (depth == 0 || HasNoMove(color)) {
         return EvaluateBoard(originalBotColor);
@@ -169,6 +176,14 @@ int AlphaBetaSearch(int depth, int alpha, int beta, bool maximizingPlayer, int c
 
     // 遍历走法
     for(int i = 0; i < lCount; i++) {
+        // 进入下一个分支前也检查时间
+        usedSec = duration_cast<milliseconds>(std::chrono::steady_clock::now() - globalStart).count() / 1000.0;
+        if(usedSec > globalTimeLimit * 0.95) {
+            // 时间不足了, 直接返回当前bestVal 或者估值
+            // 这里我们返回一个评估值, 用bestVal也行
+            return bestVal;
+        }
+
         bool ok = ProcStep(localBegin[i][0], localBegin[i][1], localPos[i][0], localPos[i][1], color);
         if(!ok) continue;
 
@@ -191,6 +206,7 @@ int AlphaBetaSearch(int depth, int alpha, int beta, bool maximizingPlayer, int c
     }
     return bestVal;
 }
+
 
 int main()
 {
